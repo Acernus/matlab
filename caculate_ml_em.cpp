@@ -10,14 +10,49 @@
 #include <stdlib.h>
 #include <fstream>
 #define pi 3.1415926535
-#define R0 400 //射线源到中心距离
-#define R1 0 //探测器到中心距离
+#define R0 3791 //射线源到中心距离
+#define R1 540 //探测器到中心距离
 #define imgWidth 512 //重建图像宽度
 #define imgHeight 512//重建图像高度
-#define M 360 //角度
-#define N 600 //探测器个数
-#define iterativeTime 1 //迭代次数
+#define M 720 //角度
+#define N 960 //探测器个数
+#define iterativeTime 50 //迭代次数
+#define offset 15 //水平方向校正
 using namespace std;
+
+
+const string filename = "E:\\imgs\\ml_em_img_";
+
+struct BIN_HEADER {	//********************* *.BIN file header struct
+	char	s[492];		// Reserved
+	double	min;		// Minimal value of data
+	double	max;		// Maximal value of data
+	int		width;		// Width of data
+	int     height;		// Height of data
+	int     depth;		// Depth of data (slices)
+};
+BIN_HEADER dataheader;
+void save(int time, vector<vector<double> > &a) {
+	FILE *fp;
+	string file;
+	file = filename + to_string(time) + ".bin";
+	fopen_s(&fp, file.c_str(), "wb");
+	if (fp == NULL) {
+		return;
+	}
+	dataheader.min = a[0][0];
+	dataheader.max = a[0][0];
+	for (int i = 0; i < a.size(); ++i) {
+		for (int j = 0; j < a[0].size(); ++j) {
+			if (dataheader.min > a[i][j]) dataheader.min = a[i][j];
+			if (dataheader.max < a[i][j]) dataheader.max = a[i][j];
+			fwrite(&a[i][j], 8, 1, fp);
+		}	
+	}
+	fwrite(&dataheader, sizeof(BIN_HEADER), 1, fp);
+	fclose(fp);
+}
+
 
 void initImageArray(vector<vector<double> > &img, double *data, int IM, int IN) {
 	for (int i = 0; i < IM; ++i) {
@@ -86,7 +121,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 
 			for (int k = 0; k < N; ++k) {
 				//计算探测器的射线坐标
-				double x1 = -(R1 * costable[j] + (N / 2 - k) * sintable[j]) + imgWidth / 2, y1 = -(R1 * sintable[j] - (N / 2 - k) * costable[j]) + imgHeight / 2;
+				double x1 = -(R1 * costable[j] + (N / 2 - k + offset) * sintable[j]) + imgWidth / 2, y1 = -(R1 * sintable[j] - (N / 2 - k + offset) * costable[j]) + imgHeight / 2;
 				//计算斜率处理极端情况
 				//视为与X轴平行
 				double k1, b, xmin, xmax, ymin, ymax;
@@ -213,7 +248,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 			        }
 				}
 				if(lineSum[k] == 0) delta[k] = 0;
-				else delta[k] = projection[j][N - k - 1] / lineSum[k];
+				else delta[k] = projection[j][k] / lineSum[k];
 			}
 
 
@@ -241,6 +276,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 				}
 			}
 		}
+
+		save(i + 51, img);
 	}
 
 	int k = 0;
