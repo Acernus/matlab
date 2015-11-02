@@ -16,12 +16,12 @@
 #define imgHeight 512//重建图像高度
 #define M 720 //角度
 #define N 960 //探测器个数
-#define iterativeTime 50 //迭代次数
+#define iterativeTime 100 //迭代次数
 #define offset 15 //水平方向校正
 using namespace std;
 
 
-const string filename = "E:\\imgs\\ml_em_img_";
+const string filename = "E:\\ml_em_imgs\\ml_em_img_";
 
 struct BIN_HEADER {	//********************* *.BIN file header struct
 	char	s[492];		// Reserved
@@ -94,8 +94,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	//计算每个角度的sin和cos值
 	//从1度到360度
 	for (int i = 0; i < M; ++i) {
-		sintable[i] = sin((i + 1) * pi * 2 / M);
-		costable[i] = cos((i + 1) * pi * 2 / M);
+		sintable[M - 1 - i] = sin((i + 1) * pi * 2 / M);
+		costable[M - 1 - i] = cos((i + 1) * pi * 2 / M);
 	}
 
 
@@ -277,7 +277,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 			}
 		}
 
-		save(i + 51, img);
+		save(i + 1, img);
 	}
 
 	int k = 0;

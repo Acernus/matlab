@@ -10,18 +10,50 @@
 #include <stdlib.h>
 #include <fstream>
 #define pi 3.1415926535
-#define R0 400 //射线源到中心距离
-#define R1 0 //探测器到中心距离
+#define R0 3791 //射线源到中心距离
+#define R1 540 //探测器到中心距离
 #define imgWidth 512 //重建图像宽度
 #define imgHeight 512//重建图像高度
-#define M 360 //角度
-#define N 600 //探测器个数
+#define M 720 //角度
+#define N 960 //探测器个数
 #define iterativeTime 1 //迭代次数
 #define littledelta 0.00002
 #define belta 2
+#define offset 15
 using namespace std;
 
 
+const string filename = "E:\\ml_em_imgs\\ml_em_img_";
+
+struct BIN_HEADER {	//********************* *.BIN file header struct
+	char	s[492];		// Reserved
+	double	min;		// Minimal value of data
+	double	max;		// Maximal value of data
+	int		width;		// Width of data
+	int     height;		// Height of data
+	int     depth;		// Depth of data (slices)
+};
+BIN_HEADER dataheader;
+void save(int time, vector<vector<double> > &a) {
+	FILE *fp;
+	string file;
+	file = filename + to_string(time) + ".bin";
+	fopen_s(&fp, file.c_str(), "wb");
+	if (fp == NULL) {
+		return;
+	}
+	dataheader.min = a[0][0];
+	dataheader.max = a[0][0];
+	for (int i = 0; i < a.size(); ++i) {
+		for (int j = 0; j < a[0].size(); ++j) {
+			if (dataheader.min > a[i][j]) dataheader.min = a[i][j];
+			if (dataheader.max < a[i][j]) dataheader.max = a[i][j];
+			fwrite(&a[i][j], 8, 1, fp);
+		}	
+	}
+	fwrite(&dataheader, sizeof(BIN_HEADER), 1, fp);
+	fclose(fp);
+}
 
 void initImageArray(vector<vector<double> > &img, double *data, int IM, int IN) {
 	for (int i = 0; i < IM; ++i) {
@@ -74,8 +106,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	//计算每个角度的sin和cos值
 	//从1度到360度
 	for (int i = 0; i < M; ++i) {
-		sintable[i] = sin((i + 1) * pi * 2 / M);
-		costable[i] = cos((i + 1) * pi * 2 / M);
+		sintable[M - 1 - i] = sin((i + 1) * pi * 2 / M);
+		costable[M - 1 - i] = cos((i + 1) * pi * 2 / M);
 	}
 
 
@@ -89,11 +121,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	//every time
 	for (int i = 0; i < iterativeTime; ++i) {
 		//every angle
+		mexPrintf("iterativeTime : %d\n", i + 1);
 
 		vector<vector<double> > pixelSum(imgR, vector<double>(imgC));
 		vector<vector<double> > deltaMutilpyPixel(imgR, vector<double>(imgC));
 		for (int j = 0; j < M; ++j) {
-			mexPrintf("angle loop : %d\n", j + 1);
 			vector<unordered_map<string, double> > lineTrack(N);//保存当前角度下射线每条射线穿过的像素点和对应的线段长
 			vector<double> lineSum(N);
 			vector<double> delta(N);
@@ -103,7 +135,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 
 			for (int k = 0; k < N; ++k) {
 				//计算探测器的射线坐标
-				double x1 = -(R1 * costable[j] + (N / 2 - k) * sintable[j]) + imgWidth / 2, y1 = -(R1 * sintable[j] - (N / 2 - k) * costable[j]) + imgHeight / 2;
+				double x1 = -(R1 * costable[j] + (N / 2 - k + offset) * sintable[j]) + imgWidth / 2, y1 = -(R1 * sintable[j] - (N / 2 - k + offset) * costable[j]) + imgHeight / 2;
 				//计算斜率处理极端情况
 				//视为与X轴平行
 				double k1, b, xmin, xmax, ymin, ymax;
@@ -232,7 +264,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 				if(lineSum[k] == 0) delta[k] = 0;
 				else delta[k] = projection[j][k] / lineSum[k];
 			}
-			mexPrintf("lineSum end\n");
 
 
 			for(int k = 0; k < N; ++k) {
@@ -247,8 +278,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 				}
 				
 			}
-			mexPrintf("pixelSum end\n");
-			mexPrintf("loop end!\n");
 		}
 		for(int row = 0; row < imgR; ++row) {
 			for(int col = 0; col < imgC; ++col) {
@@ -274,7 +303,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 				}
 			}
 		}
+		save(i + 1, img);
 	}
+
 
 	int k = 0;
 	for(int i = 0; i < imgWidth; ++i) {
