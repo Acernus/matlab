@@ -30,7 +30,7 @@ for i = 1 : w1
         %calculate value of PH
         highlength = 0;
         highlengthMultiple = 0;
-        for m = 1 : hs1
+        for m = 1 : hs2
             highlength = highlength + high_spec(m, 2);
             highlengthMultiple = highlengthMultiple + high_spec(m, 2) * exp(-B1(i) * hu1 - B2(j) * hu2);
         end

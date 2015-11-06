@@ -15,15 +15,15 @@
 #define imgWidth 512 //重建图像宽度
 #define imgHeight 512//重建图像高度
 #define M 720 //角度
-#define N 960 //探测器个数
-#define iterativeTime 1 //迭代次数
-#define littledelta 0.00002
+#define N 960 //探测器个�?
+#define iterativeTime 80 //迭代次数
+#define littledelta 0.02
 #define belta 2
 #define offset 15
 using namespace std;
 
 
-const string filename = "E:\\ml_em_imgs\\ml_em_img_";
+const string filename = "E:\\osl_em_imgs\\osl_em_img_";
 
 struct BIN_HEADER {	//********************* *.BIN file header struct
 	char	s[492];		// Reserved
@@ -102,9 +102,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 
 	mexPrintf("projection width: %d, height: %d \n", proC, proR);
 
-	double sintable[M], costable[M]; //每个角度的cos值
-	//计算每个角度的sin和cos值
-	//从1度到360度
+	double sintable[M], costable[M]; //每个角度的cos�?
+	//计算每个角度的sin和cos�?
+	//�?度到360�?
 	for (int i = 0; i < M; ++i) {
 		sintable[M - 1 - i] = sin((i + 1) * pi * 2 / M);
 		costable[M - 1 - i] = cos((i + 1) * pi * 2 / M);
@@ -137,11 +137,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 				//计算探测器的射线坐标
 				double x1 = -(R1 * costable[j] + (N / 2 - k + offset) * sintable[j]) + imgWidth / 2, y1 = -(R1 * sintable[j] - (N / 2 - k + offset) * costable[j]) + imgHeight / 2;
 				//计算斜率处理极端情况
-				//视为与X轴平行
+				//视为与X轴平�?
 				double k1, b, xmin, xmax, ymin, ymax;
 
 				if (abs(y1 - y0) < 1e-6) {
-					//y0在图像的范围内
+					//y0在图像的范围�?
 					if(y0 > 0 && y0 < imgHeight) {
 						int tmpx = static_cast<int>(floor(y0));
 						//y0不在图像的边界上
@@ -158,13 +158,13 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 							continue;
 						}
 					}
-					//如果在边界，那么直接到下一条射线
+					//如果在边界，那么直接到下�?��射线
 					else {
 						continue;
 					}
 				}
 				else if(abs(x1 - x0) < 1e-6) {
-					//x0在图像的范围内
+					//x0在图像的范围�?
 					if(x0 > 0 && x0 < imgWidth) {
 						int tmpy = static_cast<int>(floor(x0));
 						if(abs(x0 - floor(x0)) > 1e-6) {
@@ -180,12 +180,12 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 							continue;
 						}
 					}
-					//如果只有一个交点或没有，那么直接到下一条射线
+					//如果只有�?��交点或没有，那么直接到下�?��射线
 					else {
 						continue;
 					}
 				}
-				//处理一般情况
+				//处理�?��情况
 				else {
 					//计算射线与重建图像的交点
 					k1 = (y1 - y0) / (x1 - x0);
@@ -202,13 +202,13 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 			            ymin = xmax * k1 + b;
 			            ymax = xmin * k1 + b;
 			        }
-			        //如果射线与重建图像没有交点
+			        //如果射线与重建图像没有交�?
 			        if(xmin >= imgWidth || xmax <= 0) {
 			            continue;
 			        }
                     else {
 			        	vector<pair<double, double> > v;
-			        	//插入每个相交的x点
+			        	//插入每个相交的x�?
 			            for(int i = static_cast<int>(ceil(xmin)); i <= static_cast<int>(floor(xmax)); ++i) {
 							v.push_back(make_pair(i, k1 * i + b));
 			            }
@@ -224,18 +224,18 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 			                }
 			            }
 			            
-			            //添加第一个元素
+			            //添加第一个元�?
 			            //如果xmin不为ceil接近
 			            if(abs(xmin - ceil(xmin)) > 1e-6) {
 			            	v.push_back(make_pair(xmin, k1 * xmin + b));
 			            }
-			            //添加最后一个元素
+			            //添加�?���?��元素
 			            //如果xmax不为floor接近
 			            if(abs(xmax - floor(xmax)) > 1e-6) {
 			            	v.push_back(make_pair(xmax, k1 * xmax + b));
 			            }
 
-			            //排序清除相同的元素。
+			            //排序清除相同的元素�?
 						sort(v.begin(), v.end(), cmp);
 			            vector<pair<double, double> > tmpVector;
 			          	vector<pair<double, double> >::iterator tmp = v.begin();
@@ -303,7 +303,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 				}
 			}
 		}
-		save(i + 1, img);
+		save(i + 21, img);
 	}
 
 
