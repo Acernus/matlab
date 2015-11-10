@@ -10,14 +10,14 @@
 #include <stdlib.h>
 #include <fstream>
 #define pi 3.1415926535
-#define R0 3791 //射线源到中心距离
-#define R1 540 //探测器到中心距离
-#define imgWidth 512 //重建图像宽度
-#define imgHeight 512//重建图像高度
-#define M 720 //角度
-#define N 960 //探测器个数
-#define iterativeTime 100 //迭代次数
-#define offset 15 //水平方向校正
+#define R0 388 //射线源到中心距离
+#define R1 119 //探测器到中心距离
+#define imgWidth 256 //重建图像宽度
+#define imgHeight 256//重建图像高度
+#define M 400 //角度
+#define N 256 //探测器个数
+#define iterativeTime 1 //迭代次数
+#define offset 0 //水平方向校正
 using namespace std;
 
 
@@ -42,6 +42,9 @@ void save(int time, vector<vector<double> > &a) {
 	}
 	dataheader.min = a[0][0];
 	dataheader.max = a[0][0];
+	dataheader.height = a.size();
+	dataheader.width = a[0].size();
+	dataheader.depth = 1;
 	for (int i = 0; i < a.size(); ++i) {
 		for (int j = 0; j < a[0].size(); ++j) {
 			if (dataheader.min > a[i][j]) dataheader.min = a[i][j];
@@ -94,8 +97,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	//计算每个角度的sin和cos值
 	//从1度到360度
 	for (int i = 0; i < M; ++i) {
-		sintable[M - 1 - i] = sin((i + 1) * pi * 2 / M);
-		costable[M - 1 - i] = cos((i + 1) * pi * 2 / M);
+		sintable[M - i - 1] = sin((i + 1) * pi * 2 / M);
+		costable[M - i - 1] = cos((i + 1) * pi * 2 / M);
 	}
 
 
@@ -277,7 +280,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 			}
 		}
 
-		save(i + 1, img);
+		//save(i + 101, img);
 	}
 
 	int k = 0;

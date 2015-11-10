@@ -2,15 +2,20 @@ clc;
 clear all;
 %%
 %从能谱文件中读出高低能谱存入SL和SH中
-SL = load('SL.txt');
-SH = load('SH.txt');
-SL = SL(:, 2)';
-SH = SH(:, 2)';
-
+SL = load('newSpectrum80kV.dat');%1-80KeV
+SH = load('newSpectrum160kV.dat');%1-160Kev
+dLE = 0.13;
+dHE = 0.27;
 [lht, lwd] = size(SL);
 [hht, hwd] = size(SH);
 %%
 %输入查找到的高低能谱下，两种物质的衰减系数, size == 抽样能谱数
+%进行曲线拟合，分别得到高低能下物质的衰减曲线
+
+
+
+
+
 ul = [0 1; 2 3];
 uh = [4 5; 6 7];
 %分段采样
@@ -18,7 +23,6 @@ lsamplelen = lwd;
 hsamplelen = hwd;
 sampleSL = SL;
 sampleSH = SH;
-dE = 1;
 
 SLintergration = 0;
 SHintergration = 0;
