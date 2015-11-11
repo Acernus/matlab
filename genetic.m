@@ -62,43 +62,48 @@ end
 %先定义生成两幅投影图的变量
 decomposition_prj1 = zeros(height, width);
 decomposition_prj2 = zeros(height, width);
-
+ul1 = ul(:, 1);
+ul2 = ul(:, 2);
+uh1 = uh(:, 1);
+uh2 = uh(:, 2);
 %formula = [];
 for i = 1 : height
    % formularow = [];
     for j = 1 : width
         %生成双能分解的方程组
         syms B1 B2;
-        z1 = exp(-B1*ul(1, 1) - B2*ul(1, 2)) * sampleSL(1)*dLE;
-        z2 = exp(-B1*uh(1, 1) - B2*uh(1, 2)) * sampleSH(1)*dHE;
+        z1 = exp(-B1*ul1(1) - B2*ul2(1)) * sampleSL(1)*dLE;
+        z2 = exp(-B1*uh1(1) - B2*uh2(1)) * sampleSH(1)*dHE;
         for k = 2 : lsamplelen
-            z1 = z1 + exp(-B1*ul(k, 1) - B2*ul(k, 2)) * sampleSL(k)*dLE;
+            z1 = z1 + exp(-B1*ul1(k) - B2*ul2(k)) * sampleSL(k)*dLE;
         end
         for k = 2 : hsamplelen
-            z2 = z2 + exp(-B1*uh(k, 1) - B2*uh(k, 2)) * sampleSH(k)*dHE;
+            z2 = z2 + exp(-B1*uh1(k) - B2*uh2(k)) * sampleSH(k)*dHE;
         end
         
         gz = (log(z1) - log(SLintergration) - lowprj(i, j))^2 + (log(z2) - log(SHintergration) - highprj(i, j))^2;
         g = matlabFunction(gz, 'vars',{[B1, B2]});
         options = gaoptimset('Generations', 200);
         [r, f] = ga(g, 2, [], [], [], [], 0, [], [], options);
-        while f > 10^-6
-            [r, f] = ga(g, 2, [], [], [], [], 0, [], [], options);
-        end
+%         while f > 10^-6
+%             [r, f] = ga(g, 2, [], [], [], [], 0, [], [], options);
+%         end
         decomposition_prj1(i, j) = r(1);
         decomposition_prj2(i, j) = r(2);
+        disp(i);
+        disp(j);
         %formularow = [formularow gz];
     end
 %     formula = [formula; formularow];
 end
-%%
 % [fheight, fwidth] =size(formula);
 % for i = 1 : fheight
 %     for j = 1 : fwidth
 %         
 %     end
 % end
-
+writebin('10_parts_prj1.bin', decomposition_prj1);
+writebin('10_parts_prj2.bin', decomposition_prj2);
 
 imtool(decomposition_prj1, []);
 imtool(decomposition_prj2, []);
