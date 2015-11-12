@@ -69,21 +69,21 @@ uh2 = uh(:, 2);
 %formula = [];
 for i = 1 : height
     for j = 1 : width
-        fileContent = sprintf('function f = getFormula_%d_%d(B)\n\tf = ', i, j);
-        z1_str = sprintf('exp(-B(1) * %f - B(2) * %f) * %f', ul1(1), ul2(1), sampleSL(1)*dLE);
+        fileContent = sprintf('function f = getFormula_%d_%d(x)\n\tf = ', i, j);
+        z1_str = sprintf('exp(-x(1) * %f - x(2) * %f) * %f', ul1(1), ul2(1), sampleSL(1)*dLE);
         for k = 2 : lsamplelen
-            z1_str = strcat(z1_str, sprintf(' + exp(-B(1) * %f - B(2) * %f) * %f', ul1(k), ul2(k), sampleSL(k)*dLE));
+            z1_str = strcat(z1_str, sprintf(' + exp(-x(1) * %f - x(2) * %f) * %f', ul1(k), ul2(k), sampleSL(k)*dLE));
         end
         
-        z2_str = sprintf('exp(-B(1) * %f - B(2) * %f) * %f', uh1(1), uh2(1), sampleSH(1)*dHE);
+        z2_str = sprintf('exp(-x(1) * %f - x(2) * %f) * %f', uh1(1), uh2(1), sampleSH(1)*dHE);
         for k = 1 : hsamplelen
-            z2_str = strcat(z2_str, sprintf(' + exp(-B(1) * %f - B(2) * %f) * %f', uh1(k), uh2(k), sampleSH(k)*dHE));
+            z2_str = strcat(z2_str, sprintf(' + exp(-x(1) * %f - x(2) * %f) * %f', uh1(k), uh2(k), sampleSH(k)*dHE));
         end
         
         res = sprintf('(log(%s) - log(%f) - %f)^2 + (log(%s) - log(%f) - %f)^2', z1_str, SLintergration, lowprj(i, j), z2_str, SHintergration, highprj(i, j));
         fileContent = strcat(fileContent, res, ';');
         
-        fid = fopen(sprintf('E:/matlab/functions/getFormula_%d_%d.m', i, j),'wb');
+        fid = fopen(sprintf('D:/matlab/functions/getFormula_%d_%d.m', i, j),'wb');
         fwrite(fid,fileContent,'char');
         fclose(fid);
         

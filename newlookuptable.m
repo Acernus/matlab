@@ -74,7 +74,9 @@ end
 %%
 B1 = 0 : 0.01 : 9.99;
 B2 = 0 : 0.01 : 9.99;
-
+save zh.mat zh;
+save zl.mat zl;
+%%
 surf(B1, B2, zh);
 axis tight;
 colormap(hot);
