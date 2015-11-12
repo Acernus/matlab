@@ -93,14 +93,18 @@ for i = 1 : height
         disp(i);
         disp(j);
         %formularow = [formularow gz];
-        disp(i);
-        disp(j);
     end
 %     formula = [formula; formularow];
 end
-
+% [fheight, fwidth] =size(formula);
+% for i = 1 : fheight
+%     for j = 1 : fwidth
+%         
+%     end
+% end
 writebin('10_parts_prj1.bin', decomposition_prj1);
 writebin('10_parts_prj2.bin', decomposition_prj2);
+
 imtool(decomposition_prj1, []);
 imtool(decomposition_prj2, []);
 
