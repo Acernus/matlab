@@ -4,23 +4,21 @@ clear all;
 %从能谱文件中读出高低能谱存入SL和SH中
 SL = load('newSpectrum80kV.dat');%1-80KeV
 SH = load('newSpectrum160kV.dat');%1-160Kev
-points = 600;
-dLE = 80/600;
-dHE = 160/600;
+points = 10;
+dLE = 80/points;
+dHE = 160/points;
 [lht, lwd] = size(SL);
 [hht, hwd] = size(SH);
 %%
 %分段采样，此处就取600个点
 lsamplelen = points;
 hsamplelen = points;
-sampleSL = SL;
-sampleSH = SH;
-% sampleSL = [];
-% sampleSH = [];
-% for i = 0 : points -1 
-%     sampleSL = [sampleSL SL(1 + i*dLE)];
-%     sampleSH = [sampleSH SH(1 + i*dHE)];
-% end
+sampleSL = [];
+sampleSH = [];
+for i = 0 : points -1 
+    sampleSL = [sampleSL SL(1 + i*dLE)];
+    sampleSH = [sampleSH SH(1 + i*dHE)];
+end
 %输入查找到的高低能谱下，两种物质的衰减系数, size == 抽样能谱数
 %进行曲线拟合，分别得到高低能下物质的衰减曲线
 L_Al = interpolant('0_80kv_Al.txt', 3);
@@ -68,31 +66,37 @@ ul1 = ul(:, 1);
 ul2 = ul(:, 2);
 uh1 = uh(:, 1);
 uh2 = uh(:, 2);
-%formula = [];
-for i = 1 : height
-    for j = 1 : width
-        fileContent = sprintf('function f = getFormula_%d_%d(x)\n\tf = ', i, j);
-        z1_str = sprintf('exp(-x(1) * %f - x(2) * %f) * %f', ul1(1), ul2(1), sampleSL(1)*dLE);
-        for k = 2 : lsamplelen
-            z1_str = strcat(z1_str, sprintf(' + exp(-x(1) * %f - x(2) * %f) * %f', ul1(k), ul2(k), sampleSL(k)*dLE));
-        end
-        
-        z2_str = sprintf('exp(-x(1) * %f - x(2) * %f) * %f', uh1(1), uh2(1), sampleSH(1)*dHE);
-        for k = 1 : hsamplelen
-            z2_str = strcat(z2_str, sprintf(' + exp(-x(1) * %f - x(2) * %f) * %f', uh1(k), uh2(k), sampleSH(k)*dHE));
-        end
-        
-        res = sprintf('(log(%s) - log(%f) - %f)^2 + (log(%s) - log(%f) - %f)^2', z1_str, SLintergration, lowprj(i, j), z2_str, SHintergration, highprj(i, j));
-        fileContent = strcat(fileContent, res, ';');
-        
-        fid = fopen(sprintf('D:/matlab/newfunction/getFormula_%d_%d.m', i, j),'wb');
-        fwrite(fid,fileContent,'char');
-        fclose(fid);
-        
-        disp(i);
-        disp(j);
-    end
+
+syms B1 B2;
+z1 = exp(-B1*ul1(1) - B2*ul2(1)) * sampleSL(1)*dLE;
+z2 = exp(-B1*uh1(1) - B2*uh2(1)) * sampleSH(1)*dHE;
+for k = 2 : lsamplelen
+    z1 = z1 + exp(-B1*ul1(k) - B2*ul2(k)) * sampleSL(k)*dLE;
 end
+for k = 2 : hsamplelen
+    z2 = z2 + exp(-B1*uh1(k) - B2*uh2(k)) * sampleSH(k)*dHE;
+end
+gz1 = log(z1) - log(SLintergration);
+gz2 = log(z2) - log(SHintergration);
+%%
+b1 = zeros(1000, 1000);
+b2 = zeros(1000, 1000);
 
-
+m = 1;
+for i = 0 : 0.01 : 9.99
+    n = 1;
+    for j = 0 : 0.01 : 9.99
+        %生成双能分解的方程组
+        gz = (gz1 - i)^2 + (gz2 - j)^2;
+        g = matlabFunction(gz, 'vars',{[B1, B2]});
+        options = gaoptimset('Generations', 200);
+        [r, f] = ga(g, 2, [], [], [], [], 0, [], [], options);
+        b1(m, n) = r(1);
+        b2(m, n) = r(2);
+        n = n + 1;
+        disp(m);
+        disp(n);
+    end
+    m = m + 1;
+end
 
