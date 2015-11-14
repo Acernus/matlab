@@ -1,4 +1,4 @@
-#include "mex.h"
+﻿#include "mex.h"
 #include <iostream>
 #include <unordered_map>
 #include <algorithm>
@@ -16,7 +16,7 @@
 #define imgHeight 256//重建图像高度
 #define M 400 //角度
 #define N 256 //探测器个数
-#define iterativeTime 20 //迭代次数
+#define iterativeTime 1 //迭代次数
 #define offset 0 //水平方向校正
 using namespace std;
 
