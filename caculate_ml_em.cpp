@@ -97,8 +97,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	//计算每个角度的sin和cos值
 	//从1度到360度
 	for (int i = 0; i < M; ++i) {
-		sintable[i] = sin((i + 1) * pi * 0.9 * 2 / M);
-		costable[i] = cos((i + 1) * pi * 0.9 * 2 / M);
+		sintable[i] = sin((i + 1) * pi * 0.9 * 2 / 360);
+		costable[i] = cos((i + 1) * pi * 0.9 * 2 / 360);
 	}
 
 
@@ -140,7 +140,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 								memset(buff, '\0', sizeof(buff));
 								sprintf(buff, "%d %d", tmpx, i);
 								str = buff;
-								lineTrack[j][str] = 1;
+								lineTrack[k][str] = 1;
 								lineSum[k] += img[tmpx][i] * 1;
 							}
 						} else {
@@ -162,7 +162,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 								memset(buff, '\0', sizeof(buff));
 								sprintf(buff, "%d %d", i, tmpy);
 								str = buff;
-								lineTrack[j][str] = 1;
+								lineTrack[k][str] = 1;
 								lineSum[k] += img[i][tmpy] * 1;
 							}
 						} else {
