@@ -16,23 +16,31 @@
 #define imgHeight 256//重建图像高度
 #define M 400 //角度
 #define N 256 //探测器个数
-#define iterativeTime 1 //迭代次数
+#define iterativeTime 50 //迭代次数
 #define offset 0 //水平方向校正
 using namespace std;
 
 
-const string filename = "E:\\ml_em_imgs\\ml_em_img_";
+const string filename = "E:\\lm_ml_em_img2\\ml_em_img_";
 
 struct BIN_HEADER {	//********************* *.BIN file header struct
 	char	s[492];		// Reserved
-	double	min;		// Minimal value of data
-	double	max;		// Maximal value of data
+	float	min;		// Minimal value of data
+	float	max;		// Maximal value of data
 	int		width;		// Width of data
 	int     height;		// Height of data
 	int     depth;		// Depth of data (slices)
 };
 BIN_HEADER dataheader;
 void save(int time, vector<vector<double> > &a) {
+	vector<vector<float> > b(a.size(), vector<float>(a[0].size()));
+
+	for(int i = 0; i < a.size(); ++i) {
+		for(int j = 0; j < a[0].size(); ++j) {
+			b[i][j] = (float)a[i][j];
+		}
+	}
+
 	FILE *fp;
 	string file;
 	file = filename + to_string(time) + ".bin";
@@ -40,16 +48,16 @@ void save(int time, vector<vector<double> > &a) {
 	if (fp == NULL) {
 		return;
 	}
-	dataheader.min = a[0][0];
-	dataheader.max = a[0][0];
-	dataheader.height = a.size();
-	dataheader.width = a[0].size();
+	dataheader.min = b[0][0];
+	dataheader.max = b[0][0];
+	dataheader.height = b.size();
+	dataheader.width = b[0].size();
 	dataheader.depth = 1;
-	for (int i = 0; i < a.size(); ++i) {
-		for (int j = 0; j < a[0].size(); ++j) {
-			if (dataheader.min > a[i][j]) dataheader.min = a[i][j];
-			if (dataheader.max < a[i][j]) dataheader.max = a[i][j];
-			fwrite(&a[i][j], 8, 1, fp);
+	for (int i = 0; i < b.size(); ++i) {
+		for (int j = 0; j < b[0].size(); ++j) {
+			if (dataheader.min > b[i][j]) dataheader.min = b[i][j];
+			if (dataheader.max < b[i][j]) dataheader.max = b[i][j];
+			fwrite(&b[i][j], 4, 1, fp);
 		}	
 	}
 	fwrite(&dataheader, sizeof(BIN_HEADER), 1, fp);
@@ -280,7 +288,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 			}
 		}
 
-		//save(i + 101, img);
+		save(i + 1, img);
 	}
 
 	int k = 0;
