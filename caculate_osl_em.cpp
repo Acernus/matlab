@@ -10,16 +10,16 @@
 #include <stdlib.h>
 #include <fstream>
 #define pi 3.1415926535
-#define R0 3791 //射线源到中心距离
-#define R1 540 //探测器到中心距离
-#define imgWidth 512 //重建图像宽度
-#define imgHeight 512//重建图像高度
-#define M 720 //角度
-#define N 960 //探测器个�?
-#define iterativeTime 80 //迭代次数
+#define R0 388 //射线源到中心距离
+#define R1 119 //探测器到中心距离
+#define imgWidth 256 //重建图像宽度
+#define imgHeight 256//重建图像高度
+#define M 400 //角度
+#define N 256 //探测器个
+#define iterativeTime 20 //迭代次数
 #define littledelta 0.02
 #define belta 2
-#define offset 15
+#define offset 0
 using namespace std;
 
 
@@ -35,6 +35,14 @@ struct BIN_HEADER {	//********************* *.BIN file header struct
 };
 BIN_HEADER dataheader;
 void save(int time, vector<vector<double> > &a) {
+	vector<vector<float> > b(a.size(), vector<float>(a[0].size()));
+
+	for(int i = 0; i < a.size(); ++i) {
+		for(int j = 0; j < a[0].size(); ++j) {
+			b[i][j] = (float)a[i][j];
+		}
+	}
+
 	FILE *fp;
 	string file;
 	file = filename + to_string(time) + ".bin";
@@ -42,13 +50,16 @@ void save(int time, vector<vector<double> > &a) {
 	if (fp == NULL) {
 		return;
 	}
-	dataheader.min = a[0][0];
-	dataheader.max = a[0][0];
-	for (int i = 0; i < a.size(); ++i) {
-		for (int j = 0; j < a[0].size(); ++j) {
-			if (dataheader.min > a[i][j]) dataheader.min = a[i][j];
-			if (dataheader.max < a[i][j]) dataheader.max = a[i][j];
-			fwrite(&a[i][j], 8, 1, fp);
+	dataheader.min = b[0][0];
+	dataheader.max = b[0][0];
+	dataheader.height = b.size();
+	dataheader.width = b[0].size();
+	dataheader.depth = 1;
+	for (int i = 0; i < b.size(); ++i) {
+		for (int j = 0; j < b[0].size(); ++j) {
+			if (dataheader.min > b[i][j]) dataheader.min = b[i][j];
+			if (dataheader.max < b[i][j]) dataheader.max = b[i][j];
+			fwrite(&b[i][j], 4, 1, fp);
 		}	
 	}
 	fwrite(&dataheader, sizeof(BIN_HEADER), 1, fp);
@@ -102,12 +113,12 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 
 	mexPrintf("projection width: %d, height: %d \n", proC, proR);
 
-	double sintable[M], costable[M]; //每个角度的cos�?
-	//计算每个角度的sin和cos�?
-	//�?度到360�?
+	double sintable[M], costable[M]; //每个角度的cos
+	//计算每个角度的sin和cos
+	//1度到360
 	for (int i = 0; i < M; ++i) {
-		sintable[M - 1 - i] = sin((i + 1) * pi * 2 / M);
-		costable[M - 1 - i] = cos((i + 1) * pi * 2 / M);
+		sintable[i] = sin((i + 1) * pi * 0.9 * 2 / 360);
+		costable[i] = cos((i + 1) * pi * 0.9 * 2 / 360);
 	}
 
 
@@ -137,11 +148,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 				//计算探测器的射线坐标
 				double x1 = -(R1 * costable[j] + (N / 2 - k + offset) * sintable[j]) + imgWidth / 2, y1 = -(R1 * sintable[j] - (N / 2 - k + offset) * costable[j]) + imgHeight / 2;
 				//计算斜率处理极端情况
-				//视为与X轴平�?
+				//视为与X轴平???
 				double k1, b, xmin, xmax, ymin, ymax;
 
 				if (abs(y1 - y0) < 1e-6) {
-					//y0在图像的范围�?
+					//y0在图像的范围
 					if(y0 > 0 && y0 < imgHeight) {
 						int tmpx = static_cast<int>(floor(y0));
 						//y0不在图像的边界上
@@ -151,20 +162,20 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 								memset(buff, '\0', sizeof(buff));
 								sprintf(buff, "%d %d", tmpx, i);
 								str = buff;
-								lineTrack[j][str] = 1;
+								lineTrack[k][str] = 1;
 								lineSum[k] += img[tmpx][i] * 1;
 							}
 						} else {
 							continue;
 						}
 					}
-					//如果在边界，那么直接到下�?��射线
+					//如果在边界，那么直接到下射线
 					else {
 						continue;
 					}
 				}
 				else if(abs(x1 - x0) < 1e-6) {
-					//x0在图像的范围�?
+					//x0在图像的范围	
 					if(x0 > 0 && x0 < imgWidth) {
 						int tmpy = static_cast<int>(floor(x0));
 						if(abs(x0 - floor(x0)) > 1e-6) {
@@ -173,19 +184,19 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 								memset(buff, '\0', sizeof(buff));
 								sprintf(buff, "%d %d", i, tmpy);
 								str = buff;
-								lineTrack[j][str] = 1;
+								lineTrack[k][str] = 1;
 								lineSum[k] += img[i][tmpy] * 1;
 							}
 						} else {
 							continue;
 						}
 					}
-					//如果只有�?��交点或没有，那么直接到下�?��射线
+					//如果只有?????交点或没有，那么直接到下?????射线
 					else {
 						continue;
 					}
 				}
-				//处理�?��情况
+				//处理?????情况
 				else {
 					//计算射线与重建图像的交点
 					k1 = (y1 - y0) / (x1 - x0);
@@ -202,13 +213,13 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 			            ymin = xmax * k1 + b;
 			            ymax = xmin * k1 + b;
 			        }
-			        //如果射线与重建图像没有交�?
+			        //如果射线与重建图像没有交???
 			        if(xmin >= imgWidth || xmax <= 0) {
 			            continue;
 			        }
                     else {
 			        	vector<pair<double, double> > v;
-			        	//插入每个相交的x�?
+			        	//插入每个相交的x???
 			            for(int i = static_cast<int>(ceil(xmin)); i <= static_cast<int>(floor(xmax)); ++i) {
 							v.push_back(make_pair(i, k1 * i + b));
 			            }
@@ -224,18 +235,18 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 			                }
 			            }
 			            
-			            //添加第一个元�?
+			            //添加第一个元???
 			            //如果xmin不为ceil接近
 			            if(abs(xmin - ceil(xmin)) > 1e-6) {
 			            	v.push_back(make_pair(xmin, k1 * xmin + b));
 			            }
-			            //添加�?���?��元素
+			            //添加??????????元素
 			            //如果xmax不为floor接近
 			            if(abs(xmax - floor(xmax)) > 1e-6) {
 			            	v.push_back(make_pair(xmax, k1 * xmax + b));
 			            }
 
-			            //排序清除相同的元素�?
+			            //排序清除相同的元素??
 						sort(v.begin(), v.end(), cmp);
 			            vector<pair<double, double> > tmpVector;
 			          	vector<pair<double, double> >::iterator tmp = v.begin();
