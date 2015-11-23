@@ -17,8 +17,8 @@
 #define M 400 //角度
 #define N 256 //探测器个
 #define iterativeTime 20 //迭代次数
-#define littledelta 0.02
-#define belta 2
+#define littledelta 0.1
+#define belta 100
 #define offset 0
 using namespace std;
 
@@ -27,8 +27,8 @@ const string filename = "E:\\osl_em_imgs\\osl_em_img_";
 
 struct BIN_HEADER {	//********************* *.BIN file header struct
 	char	s[492];		// Reserved
-	double	min;		// Minimal value of data
-	double	max;		// Maximal value of data
+	float	min;		// Minimal value of data
+	float	max;		// Maximal value of data
 	int		width;		// Width of data
 	int     height;		// Height of data
 	int     depth;		// Depth of data (slices)
@@ -79,8 +79,11 @@ double caculateUX(double x1, double x2) {
 	if(abs(x1 - x2) < littledelta) {
 		return x1 - x2;
 	}
+	else if(x1 - x2 > 0){
+		return littledelta; 
+	} 
 	else {
-		return littledelta * x1; 
+		return -1 * littledelta;
 	}
 }
 
@@ -314,7 +317,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 				}
 			}
 		}
-		save(i + 21, img);
+		save(i + 1, img);
 	}
 
 
