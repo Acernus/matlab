@@ -16,14 +16,14 @@
 #define imgHeight 256//重建图像高度
 #define M 400 //角度
 #define N 256 //探测器个
-#define iterativeTime 20 //迭代次数
+#define iterativeTime 30 //迭代次数
 #define littledelta 0.1
-#define belta 100
+#define belta 8
 #define offset 0
 using namespace std;
 
 
-const string filename = "E:\\osl_em_imgs\\osl_em_img_";
+const string filename = "E:\\osl_em_img1\\osl_em_img_";
 
 struct BIN_HEADER {	//********************* *.BIN file header struct
 	char	s[492];		// Reserved
@@ -120,8 +120,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	//计算每个角度的sin和cos
 	//1度到360
 	for (int i = 0; i < M; ++i) {
-		sintable[i] = sin((i + 1) * pi * 0.9 * 2 / 360);
-		costable[i] = cos((i + 1) * pi * 0.9 * 2 / 360);
+		sintable[i] = sin(i * pi * 0.9 * 2 / 360);
+		costable[i] = cos(i * pi * 0.9 * 2 / 360);
 	}
 
 

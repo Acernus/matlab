@@ -21,7 +21,7 @@
 using namespace std;
 
 
-const string filename = "E:\\lm_ml_em_img2\\ml_em_img_";
+const string filename = "E:\\lm_ml_em_img1\\ml_em_img_";
 
 struct BIN_HEADER {	//********************* *.BIN file header struct
 	char	s[492];		// Reserved
@@ -105,8 +105,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	//计算每个角度的sin和cos值
 	//从1度到360度
 	for (int i = 0; i < M; ++i) {
-		sintable[i] = sin((i + 1) * pi * 0.9 * 2 / 360);
-		costable[i] = cos((i + 1) * pi * 0.9 * 2 / 360);
+		sintable[i] = sin(i * pi * 0.9 * 2 / 360);
+		costable[i] = cos(i * pi * 0.9 * 2 / 360);
 	}
 
 

@@ -1,5 +1,5 @@
 function [ap]=FbpProjection(R0, R1, M, N, t1, PicN)
-delta_angle=2*pi*0.9/360;
+delta_angle=2*pi/360;
 %%
 % %º”‘Î…˘
 % scale=0.03;
